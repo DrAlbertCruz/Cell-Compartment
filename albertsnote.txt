@@ -1,0 +1,17 @@
+
+I. Installation
+
+1. Run MCRInstaller.exe. Must be a 64-bit computer.
+
+2. the program itself is src\runGUI.exe or runGUI.m
+
+II. what is saves
+
+
+when it saves the columns are ordered like this:
+
+1. MajorAxisLength - length of the long side (pixels)
+2. MinorAxisLength - width of the short side (pixels)
+3. Area - pixels
+4. perimeter - perimeter
+5. orientation
