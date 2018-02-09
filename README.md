@@ -17,3 +17,8 @@ After saving, the columns are ordered as:
 5. Orientation. The angle of the major axis from the horizontal axis.
 
 *Note that if you do not have Microsoft Office installed, trying to save as an XLS will fail.*
+
+# Tips
+
+* If you need to tweak the STREL parameter to get better segmentation results, start with low values (1) and work your way up one by one. *This value must be an integer.* Values greater than 20 may create problems.
+* Please enter um/pixel, not um^2/pixel^2.
