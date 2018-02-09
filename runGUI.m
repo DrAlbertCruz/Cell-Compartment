@@ -1,4 +1,3 @@
-
 function varargout = runGUI(varargin)
 % RUNGUI MATLAB code for runGUI.fig
 %      RUNGUI, by itself, creates a new RUNGUI or raises the existing
@@ -57,40 +56,38 @@ guidata(hObject, handles);
 % UIWAIT makes runGUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-%{
-    DEFAULT VALUE SETTINGS
-%}
-%{
-    20x - 2
-    40x - 3
-    60x - 4
-%}
+%% DEFAULT VALUE SETTINGS
+% STREL CLOSE SIZE
+% This parameter is used to close holds that may have occured during
+% segmentation.
+%   20x - 2 (default)
+%   40x - 3
+%   60x - 4
 options.strel_close_size = 2;
-%{
-    Contrast method:
-    0 - none
-    1 - Auto Contrast
-    2 - adaptive histogram equalization
-%}
+% CONTRAST METHOD
+%   Contrast method:
+%   0 - none
+%   1 - Auto Contrast
+%   2 - adaptive histogram equalization (default)
 options.contrast_method = 2;
-%{
-    toggle for whether or not they've hit new
-%}
+% HIT NEW
+%   The first time the user hits 'new experiment' it should not pester them
+%   with a prompt. This flag makes sure of that.
 options.hitNew = false;
-%{
-    conversion to um from pixels
-%}
+% UM/PIX Formula
+%   Conversion to um from pixels
 options.conv = .3225;
-
 % Also obligatory initial settings
 set( handles.menuSave, 'UserData', [] );
 set( handles.menuNew, 'UserData', 1 );
-
+%% STRINGS
+% That are used in many places, and located here so they can be easily
+% updated.
+options.NEW_EXP_MSG = 'Data cleared. New experiment started.';
 
 % --- Outputs from this function are returned to the command line.
 function varargout = runGUI_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
-
 
 % These two do nothing
 function menuUpperFile_Callback(hObject, eventdata, handles)
@@ -101,7 +98,7 @@ function menuAbout_Callback(hObject, eventdata, handles)
     Product help
 %}
 function menuHelp_Callback(hObject, eventdata, handles)
-msgbox( [ 'NCL Alpha Build 0003. For help contact acruz@ee.ucr.edu. Copying and distribution of this file, with or without modification, are permitted in any medium without royalty provided the copyright notice and this notice are preserved.  This file is offered as-is, without any warranty.' ], ...
+msgbox( [ 'Copying and distribution of this file, with or without modification, are permitted in any medium without royalty provided the copyright notice and this notice are preserved.  This file is offered as-is, without any warranty.' ], ...
     'About Program' );
 
 %{
@@ -120,16 +117,17 @@ if options.hitNew % dont ask for this the first time they hit it
         case 'Yes'
             set( handles.menuSave, 'UserData', [] );
             set( hObject, 'UserData', 1 );
-            set( handles.text1, 'String', 'Data cleared. New experiment started.' );
+            set( handles.text1, 'String', options.NEW_EXP_MSG );
         case 'No'
             set( handles.text1, 'String', '"File->New" command aborted.' );
     end
 else
     set( handles.menuSave, 'UserData', [] );
     set( hObject, 'UserData', 1 );
-    set( handles.text1, 'String', 'Data cleared. New experiment started.' );
+    set( handles.text1, 'String', options.NEW_EXP_MSG );
 end
-
+% Toggle 'hit new'so that they get a prompt whenever they start a new
+% experiment.
 options.hitNew = true;
 
 %{
@@ -139,35 +137,42 @@ options.hitNew = true;
 function menuOpen_Callback(hObject, eventdata, handles)
 % User data will have the previous path
 global options
+% This callback's 'UserData' contains the previous path.
 prevPath = get( hObject, 'UserData' );
-% options = get( handles.menuOptions, 'UserData' );
 
 [file,path] = uigetfile( [ prevPath '*.*' ], 'Load An Image' );
 
 if path ~= 0
-    %try
+    try
         FILE_NAME = fullfile( path, file );
         image = imread( FILE_NAME );
         set( handles.text1, 'String', 'Image loaded successfully.' );
-        
+    catch e
+        error( 'Error when loading the image in menuOpen callback.' );
+    end
 %         for i=1:size(image,3)
 % %             image = mat2gray( double(image), [0 1] );
 %             image(:,:,i) = imagenorm( image(:,:,i) );
 %         end
-        
+    
+    % Display the image in the preview pane
+    try
         imshow( image, [], 'Parent', handles.axes1 );
         set( handles.menuOpen, 'UserData', image );
         set( hObject, 'UserData', path );   % save previous path
-        
-        set( handles.text1, 'String', 'Click which cells to process. Hit enter when done.' );
+        % Give instructions
+        set( handles.text1, 'String', 'Click which cells to process. Click outside of the preview window when done.' );
+    catch e
+        error( 'Error when attempting to display preview of image.' );
+    end
         
         %         set( handles.menuOptions, 'Enable', 'off' );
-        data = fun_analyzeCells( image, ...
-            options.strel_close_size, ...
-            options.contrast_method, ...
-            options.conv, ...
-            handles.axes1, ...
-            handles.text1 ); % status handle
+    data = fun_analyzeCells( image, ...
+        options.strel_close_size, ...
+        options.contrast_method, ...
+        options.conv, ...
+        handles.axes1, ...
+        handles.text1 ); % status handle
         %         set( handles.menuOptions, 'Enable', 'on' );
         
         if ~isempty( data )
@@ -194,7 +199,7 @@ path = get( handles.menuSaveCSV, 'UserData' );
 data = get( hObject, 'UserData' );
 
 [file,path] = uiputfile( [ path 'myExp.xls' ],'Save Experiment As');
-if path ~= 0 & ~ isempty( data )
+if path ~= 0 && ~ isempty( data )
     xlswrite( [ path '\' file ], data );
 else
     set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );

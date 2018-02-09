@@ -3,11 +3,12 @@
 %}
 function data = fun_analyzeCells( image, strel_close_size, contrast_method, conversion, paneHandle, statusHandle )
 if nargin == 0
+    % Test case for the data
     clc
     close all
     strel_close_size = 2;
     image = ...
-        imread( 'C:\albert_cruz\lib\NCL\NCL-0003\testImages\set-2\WT\20X\Acquired-3.tif' );
+        imread( fullfile( 'samples', '2-9-2018.tif' ) );
     verbose = true;
     %{
         Contrast method:
@@ -23,11 +24,12 @@ end
 persistent filter_dX filter_dY strel_close PARAM_FILTER PARAM_IMAGE_SIZE
 
 % Parameters
-PARAM_FILTER        = [1 8 0 -8 -1];
+PARAM_FILTER        = [1 8 0 -8 -1]; % 1-D DOG
 PARAM_IMAGE_SIZE    = 750;
 data                = [];
 
-% Initialize filters
+% Initialize filters. Reflecting on past work here it seems that I
+% generated 2 separated DOG filters.
 filter_dX = repmat( PARAM_FILTER, length(PARAM_FILTER), 1 );    % filt X
 filter_dY = repmat( PARAM_FILTER', 1, length(PARAM_FILTER) );   % filt Y
 strel_close = strel('diamond',strel_close_size);
@@ -36,10 +38,10 @@ tic
 if size( image, 3 ) > 1                     % Check for for color.
     image = double( rgb2gray( image ) );    % OK to override 'image'
 end
-image = imagenorm( image );                 % Also normalize the image.
+image = mat2gray( image );                 % Also normalize the image.
 
 if verbose
-    verboseNewFigure( true );
+    verboseNewFigure( 1 );
     imshow( image, [] );
     title( 'Normalized image' );
 end
@@ -162,7 +164,11 @@ timeTaken = toc;
 % h = figure;
 preview = .6 * repmat( imAdjusted, [ 1 1 3 ] ) + ...
     .4 * double( label2rgb( BWCC, 'jet', [0 0 0], 'shuffle' ) ) ./ 255;
-imshow( preview, [], 'Parent', paneHandle );
+if ~verbose
+    imshow( preview, [], 'Parent', paneHandle );
+else
+    imshow( preview, [] );
+end
 
 ButtonName = questdlg('Was the segmentation OK?', ...
     'Was the segmentation OK?', ...
