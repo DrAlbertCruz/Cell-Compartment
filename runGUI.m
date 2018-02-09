@@ -145,8 +145,9 @@ prevPath = get( hObject, 'UserData' );
 [file,path] = uigetfile( [ prevPath '*.*' ], 'Load An Image' );
 
 if path ~= 0
-    try
-        image = imread( [ path '\' file ] );
+    %try
+        FILE_NAME = fullfile( path, file );
+        image = imread( FILE_NAME );
         set( handles.text1, 'String', 'Image loaded successfully.' );
         
 %         for i=1:size(image,3)
@@ -180,9 +181,9 @@ if path ~= 0
             set( handles.text1, 'String', [ 'Complete with image ' num2str(get(handles.menuNew,'UserData')-1) ...
                 ' (' num2str(n) ' cells). Waiting ...' ] );
         end
-    catch e
-        error( 'Error (in runGUI) : Bad, bad very bad error when processing a cell. Call Albert.' );
-    end
+   % catch e
+   %     error( 'Error (in runGUI) : Bad, bad very bad error when processing a cell. Call Albert.' );
+   % end
 end
 
 %{
