@@ -80,7 +80,7 @@ end
 %{
     Part 3: Now pre-process image
 %}
-image = imagenorm( image );
+image = mat2gray( image );
 image( ~ROI ) = 0;
 
 %% Switch for image contrast adjustment
@@ -119,7 +119,7 @@ if verbose
 end
 
 % Now threshold edgesMag
-edgesMag = imagenorm( edgesMag );
+edgesMag = mat2gray( edgesMag );
 edgesMag = imadjust( edgesMag );
 BW = im2bw( edgesMag, graythresh( edgesMag ) );
 % % BW = edgesMag > min( min( edgesMag ) );             % take all edges

@@ -1,3 +1,8 @@
+%% Notes
+% Theres alot of functions here that are probably associated with a
+% callback to a button that no longer exists but I'm afraid to start
+% deleting things wily nily because it works at the moment.
+
 function varargout = runGUI(varargin)
 % RUNGUI MATLAB code for runGUI.fig
 %      RUNGUI, by itself, creates a new RUNGUI or raises the existing
@@ -22,7 +27,7 @@ function varargout = runGUI(varargin)
 
 % Edit the above text to modify the response to help runGUI
 
-% Last Modified by GUIDE v2.5 14-Nov-2013 16:29:13
+% Last Modified by GUIDE v2.5 09-Feb-2018 14:36:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -198,9 +203,9 @@ function menuSave_Callback(hObject, eventdata, handles)
 path = get( handles.menuSaveCSV, 'UserData' );
 data = get( hObject, 'UserData' );
 
-[file,path] = uiputfile( [ path 'myExp.xls' ],'Save Experiment As');
-if path ~= 0 && ~ isempty( data )
-    xlswrite( [ path '\' file ], data );
+[file,path] = uiputfile( fullfile( path, 'myExp.xls' ),'Save Experiment As');
+if path ~= 0 & ~ isempty( data )
+    xlswrite( fullfile( path, file ), data );
 else
     set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
 end
@@ -212,9 +217,9 @@ function menuSaveCSV_Callback(hObject, eventdata, handles)
 path = get( hObject, 'UserData' );
 data = get( handles.menuSave, 'UserData' );
 
-[file,path] = uiputfile( [ path 'myExp.csv' ],'Save Experiment As');
+[file,path] = uiputfile( fullfile( path, 'myExp.csv' ),'Save Experiment As');
 if path ~= 0 & ~ isempty( data )
-    csvwrite( [ path '\' file ], data );
+    csvwrite( fullfile( path, file ), data );
 else
     set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
 end
@@ -291,6 +296,8 @@ switch get( hObject, 'Value' )
     otherwise
         options.strel_close_size = 2;
 end
+% As a final step, set the custom parameter field below this option
+set( handles.editStrelSize, 'String', num2str(options.strel_close_size) );
 
 % --- Executes during object creation, after setting all properties.
 function popupmagnification_CreateFcn(hObject, eventdata, handles)
@@ -313,3 +320,22 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 set( hObject, 'String', num2str( options.conv ) );
+
+function editStrelSize_Callback(hObject, eventdata, handles)
+global options
+% When selecting a magnitification, this field will change. However, if the
+% user needs to tweak parameters, they can adjust it here.
+newStrel = get( hObject, 'String' );
+options.strel_close_size = str2double( newStrel );
+
+
+% --- Executes during object creation, after setting all properties.
+function editStrelSize_CreateFcn(hObject, eventdata, handles)
+global options
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+% Set default value
+set( hObject, 'String', num2str(options.strel_close_size) );
