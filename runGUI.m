@@ -27,8 +27,6 @@ function varargout = runGUI(varargin)
 
 % Edit the above text to modify the response to help runGUI
 
-% Last Modified by GUIDE v2.5 09-Feb-2018 14:36:20
-
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -89,6 +87,8 @@ set( handles.menuNew, 'UserData', 1 );
 % That are used in many places, and located here so they can be easily
 % updated.
 options.NEW_EXP_MSG = 'Data cleared. New experiment started.';
+% Testing log
+fun_updateLog( "Started program", handles.text1 );
 
 % --- Outputs from this function are returned to the command line.
 function varargout = runGUI_OutputFcn(hObject, eventdata, handles)
