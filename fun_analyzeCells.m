@@ -1,13 +1,19 @@
 %{
     Edit this, this is the algorithm
 %}
-function data = fun_analyzeCells( image, strel_close_size, contrast_method, conversion, paneHandle, statusHandle )
+function data = fun_analyzeCells( ...
+    arru8Image, ... This is the image to be analyzed. Array of uint8
+    iCloseSize, ... This is the structure element for the morphological close operation to touch up the segmentation results.
+    iContrastMethod, ... This controls which segmentation algorithm is used
+    fAspect, ... This is the conversion to um for real measurements
+    handleAxes, ... This is the handle for the main viewport for the user.
+    handleStatus ) % This is the status
 if nargin == 0
     % Test case for the data
     clc
     close all
-    strel_close_size = 2;
-    image = ...
+    iCloseSize = 2;
+    arru8Image = ...
         imread( fullfile( 'samples', '2-9-2018.tif' ) );
     verbose = true;
     %{
@@ -16,12 +22,13 @@ if nargin == 0
         1 - Auto Contrast
         2 - adaptive histogram equalization
     %}
-    contrast_method = 2;
+    iContrastMethod = 2;
 else
     verbose = false;
 end
 
-persistent filter_dX filter_dY strel_close PARAM_FILTER PARAM_IMAGE_SIZE
+% 3/26/20: Why did this need to be persistent
+% persistent filter_dX filter_dY strel_close PARAM_FILTER PARAM_IMAGE_SIZE
 
 % Parameters
 PARAM_FILTER        = [1 8 0 -8 -1]; % 1-D DOG
@@ -32,44 +39,44 @@ data                = [];
 % generated 2 separated DOG filters.
 filter_dX = repmat( PARAM_FILTER, length(PARAM_FILTER), 1 );    % filt X
 filter_dY = repmat( PARAM_FILTER', 1, length(PARAM_FILTER) );   % filt Y
-strel_close = strel('diamond',strel_close_size);
+strel_close = strel('diamond',iCloseSize);
 
 tic
-if size( image, 3 ) > 1                     % Check for for color.
-    image = double( rgb2gray( image ) );    % OK to override 'image'
+if size( arru8Image, 3 ) > 1                     % Check for for color.
+    arru8Image = double( rgb2gray( arru8Image ) );    % OK to override 'image'
 end
-image = mat2gray( image );                 % Also normalize the image.
+arru8Image = mat2gray( arru8Image );                 % Also normalize the image.
 
 if verbose
     verboseNewFigure( 1 );
-    imshow( image, [] );
+    imshow( arru8Image, [] );
     title( 'Normalized image' );
 end
 
 %{
     Part 1: Resize to 750, maintaining aspect ratio
 %}
-if size( image, 2 ) > size( image, 1 )
-    aspectratio = size( image, 2 ) / 750;
-    image = imresize( image, [NaN PARAM_IMAGE_SIZE] );
+if size( arru8Image, 2 ) > size( arru8Image, 1 )
+    aspectratio = size( arru8Image, 2 ) / 750;
+    arru8Image = imresize( arru8Image, [NaN PARAM_IMAGE_SIZE] );
 else
-    aspectratio = size( image, 1 ) / 750;
-    image = imresize( image, [PARAM_IMAGE_SIZE NaN] );
+    aspectratio = size( arru8Image, 1 ) / 750;
+    arru8Image = imresize( arru8Image, [PARAM_IMAGE_SIZE NaN] );
 end
 
 if verbose
     verboseNewFigure;
-    imshow( image, [] );
+    imshow( arru8Image, [] );
     title( 'Resized image' );
 end
 
 %{
     Part 2: Get ROI first before we do anything
 %}
-obj = gmdistribution.fit(image(:),2);
-[idx,~] = cluster(obj,image(:));
+obj = gmdistribution.fit(arru8Image(:),2);
+[idx,~] = cluster(obj,arru8Image(:));
 [~, order] = sort( obj.mu );
-ROI = reshape( idx == order(2), size( image ) );
+ROI = reshape( idx == order(2), size( arru8Image ) );
 
 if verbose
     verboseNewFigure;
@@ -80,17 +87,17 @@ end
 %{
     Part 3: Now pre-process image
 %}
-image = mat2gray( image );
-image( ~ROI ) = 0;
+arru8Image = mat2gray( arru8Image );
+arru8Image( ~ROI ) = 0;
 
 %% Switch for image contrast adjustment
-switch contrast_method
+switch iContrastMethod
     case 0
-        imAdjusted = image;
+        imAdjusted = arru8Image;
     case 1
-        imAdjusted = imadjust( image );
+        imAdjusted = imadjust( arru8Image );
     case 2
-        imAdjusted = adapthisteq( image );
+        imAdjusted = adapthisteq( arru8Image );
     otherwise
         error( 'ERROR (In fun_analyzeCells) : Unknown auto contrast method!' );
 end
@@ -165,7 +172,7 @@ timeTaken = toc;
 preview = .6 * repmat( imAdjusted, [ 1 1 3 ] ) + ...
     .4 * double( label2rgb( BWCC, 'jet', [0 0 0], 'shuffle' ) ) ./ 255;
 if ~verbose
-    imshow( preview, [], 'Parent', paneHandle );
+    imshow( preview, [], 'Parent', handleAxes );
 else
     imshow( preview, [] );
 end
@@ -180,8 +187,8 @@ if strcmp( ButtonName, 'Yes' )
     try
         while true
 %             title( 'Click on the cell you want to analyze. Close when done.' );
-            set( statusHandle, 'String', ...
-                'Click on the cell you want to analyze. Close when done.' );
+            set( handleStatus, 'String', ...
+                'Click on the cell you want to analyze. Hit enter when done.' );
             [xi(count), yi(count)] = ginput( 1 );
             hold on; scatter( xi(count), yi(count) );
             count = count + 1;
@@ -199,7 +206,7 @@ if strcmp( ButtonName, 'Yes' )
     stats = regionprops( compartment, 'all' );
     
     data = zeros( size( stats, 1 ), 7 );
-    k = aspectratio * conversion;
+    k = aspectratio * fAspect;
     k2 = k ^ 2;
     
     for ii=1:size( stats, 1 )
