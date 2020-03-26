@@ -88,16 +88,11 @@ set( handles.menuNew, 'UserData', 1 );
 % updated.
 options.NEW_EXP_MSG = 'Data cleared. New experiment started.';
 % Testing log
-fun_updateLog( "Started program", handles.text1 );
+fun_updateLog( "Started program. To start a new experiment, click on File and New.", handles.eventLog );
 
 % --- Outputs from this function are returned to the command line.
 function varargout = runGUI_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
-
-% These two do nothing
-function menuUpperFile_Callback(hObject, eventdata, handles)
-function menuUpperHelp_Callback(hObject, eventdata, handles)
-function menuAbout_Callback(hObject, eventdata, handles)
 
 %{
     Product help
@@ -339,3 +334,26 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 % Set default value
 set( hObject, 'String', num2str(options.strel_close_size) );
+
+
+% --- Executes on selection change in eventLog.
+function eventLog_Callback(hObject, eventdata, handles)
+% hObject    handle to eventLog (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns eventLog contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from eventLog
+
+
+% --- Executes during object creation, after setting all properties.
+function eventLog_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to eventLog (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
