@@ -161,8 +161,8 @@ if path ~= 0
         % handles.menuOpen handle contains the image file
         set( handles.menuOpen, 'UserData', image );
         set( hObject, 'UserData', path );   % save previous path
-        % Give instructions
-        fun_updateLog( "Click which cells to process. Press enter when done.", handles );
+        % Give instructions. Commented out on 4/9 because it was redundant
+%         fun_updateLog( "Click which cells to process. Press enter when done.", handles );
     catch e
         error( 'Error when attempting to display preview of image.' );
     end
@@ -185,8 +185,10 @@ if path ~= 0
             
             set( handles.menuSave, 'UserData', data );
             set( handles.menuNew, 'UserData', get(handles.menuNew,'UserData') + 1 );
-            set( handles.text1, 'String', [ 'Complete with image ' num2str(get(handles.menuNew,'UserData')-1) ...
-                ' (' num2str(n) ' cells). Waiting ...' ] );
+%             set( handles.text1, 'String', [ 'Complete with image ' num2str(get(handles.menuNew,'UserData')-1) ...
+%                 ' (' num2str(n) ' cells). Waiting ...' ] );
+            fun_updateLog( [ 'Complete with image ' num2str(get(handles.menuNew,'UserData')-1) ...
+                ' (' num2str(n) ' cells). Waiting ...' ], handles );
         end
    % catch e
    %     error( 'Error (in runGUI) : Bad, bad very bad error when processing a cell. Call Albert.' );
@@ -204,7 +206,8 @@ data = get( hObject, 'UserData' );
 if path ~= 0 & ~ isempty( data )
     xlswrite( fullfile( path, file ), data );
 else
-    set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
+%     set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
+    fun_updateLog( "Save aborted (Possibly empty data, or bad path).", handles );
 end
 
 %{
@@ -218,7 +221,8 @@ data = get( handles.menuSave, 'UserData' );
 if path ~= 0 & ~ isempty( data )
     csvwrite( fullfile( path, file ), data );
 else
-    set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
+%     set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
+    fun_updateLog( "Save aborted (Possibly empty data, or bad path).", handles );
 end
 
 

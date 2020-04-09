@@ -186,8 +186,9 @@ if strcmp( ButtonName, 'Yes' )
     try
         while true
 %             title( 'Click on the cell you want to analyze. Close when done.' );
-            set( handles.axes1, 'String', ...
-                'Click on the cell you want to analyze. Hit enter when done.' );
+%             set( handles.axes1, 'String', ...
+%                 'Click on the cell you want to analyze. Hit enter when done.' );
+            fun_updateLog( "Click on the cell you want to analyze. Hit enter when done.", handles );
             [xi(count), yi(count)] = ginput( 1 );
             hold on; scatter( xi(count), yi(count) );
             count = count + 1;
