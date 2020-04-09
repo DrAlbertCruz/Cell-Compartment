@@ -3,12 +3,13 @@
 % display a psuedo-color on the main viewport
 function data = fun_analyzeCells( ...
     arru8Image, ... This is the image to be analyzed. Array of uint8
-    iCloseSize, ... This is the structure element for the morphological close operation to touch up the segmentation results.
-    iContrastMethod, ... This controls which segmentation algorithm is used
-    fAspect, ... This is the conversion to um for real measurements
-    handles ) % This is the status
-% 3/26/20: Why did this need to be persistent
-% persistent filter_dX filter_dY strel_close PARAM_FILTER PARAM_IMAGE_SIZE
+    handles ) 
+
+% Lock the segmentation button so the user doesn't keep spamming it
+set( handles.rerunSegmentation, 'Enable', 'off' );
+% Note in the log that we started.
+fun_updateLog( "Segmentation algorithm has started.", handles );
+tic
 
 %% PARAMETER INITIALIZATION: Based on handles
 CONTRAST_METHOD = get( handles.popupcontrast, 'Value' ) - 1;
@@ -124,72 +125,70 @@ BWCC = bwlabel( BWClosed );
 BWCC( ~ROI ) = 0;
 
 
-%{
-    This is the part where we ask them to click on the cell.
-%}
-% h = figure;
-preview = .6 * repmat( imAdjusted, [ 1 1 3 ] ) + ...
-    .4 * double( label2rgb( BWCC, 'jet', [0 0 0], 'shuffle' ) ) ./ 255;
-% if ~verbose
-    imshow( preview, [], 'Parent', handles.axes1 );
+%% PART 7: PSEUDOCOLOR IMAGE
+% To help the user click on the stuff that they want to click on. This is a
+% kind of hacky thing with the RGB channels.
+colorizedPreview = .5 * repmat( imAdjusted, [ 1 1 3 ] ) + ...
+    .5 * double( label2rgb( BWCC, 'jet', [0 0 0], 'shuffle' ) ) ./ 255;
+imshow( colorizedPreview, [], 'Parent', handles.axes1 );
+% Save onto UserData for some persistence
+UserData.colorizedPreview = colorizedPreview;
+
+% Set the data for the image in axes1 user data for some persistence
+set( handles.axes1, 'UserData', UserData );
+% Enable the segmentation button now that were complete
+set( handles.rerunSegmentation, 'Enable', 'on' );
+% Note in the log that we started.
+toc;
+fun_updateLog( strcat( "Segmentation algorithm completed in ", num2str( toc ), " seconds." ),...
+    handles );
+
+% ButtonName = questdlg('Was the segmentation OK?', ...
+%     'Was the segmentation OK?', ...
+%     'Yes', 'No', 'No' );
+% 
+% if strcmp( ButtonName, 'Yes' )
+%     compartment = zeros(size(BWClosed));
+%     count = 1;
+%     try
+%         while true
+% %             title( 'Click on the cell you want to analyze. Close when done.' );
+% %             set( handles.axes1, 'String', ...
+% %                 'Click on the cell you want to analyze. Hit enter when done.' );
+%             fun_updateLog( "Click on the cell you want to analyze. Hit enter when done.", handles );
+%             [xi(count), yi(count)] = ginput( 1 );
+%             hold on; scatter( xi(count), yi(count) );
+%             count = count + 1;
+%         end
+%     catch e
+%         xi = fix( xi );
+%         yi = fix( yi );
+%         ccount = 1;
+%         for jj = 1:length(xi)
+%             compartment( BWCC == BWCC( yi(jj), xi(jj) ) ) = ccount;
+%             ccount = ccount + 1;
+%         end
+%     end
+%     
+%     stats = regionprops( compartment, 'all' );
+%     
+%     data = zeros( size( stats, 1 ), 7 );
+%     k = aspectratio * fAspect;
+%     k2 = k ^ 2;
+%     
+%     for ii=1:size( stats, 1 )
+%         data( ii, 1 ) = ii;
+%         data( ii, 2 ) = stats(ii).MajorAxisLength * k;
+%         data( ii, 3 ) = stats(ii).MinorAxisLength * k;
+%         data( ii, 4 ) = stats(ii).Area * k2;
+%         data( ii, 5 ) = stats(ii).Perimeter * k;
+%         data( ii, 6 ) = stats(ii).Orientation;
+%         data( ii, 7 ) = timeTaken;
+%     end
 % else
-%     imshow( preview, [] );
+%     f = errordlg( 'Image load aborted, please tweak parameters.', 'Deepest apologies...' );
+%     data = [];
 % end
-
-ButtonName = questdlg('Was the segmentation OK?', ...
-    'Was the segmentation OK?', ...
-    'Yes', 'No', 'No' );
-
-if strcmp( ButtonName, 'Yes' )
-    compartment = zeros(size(BWClosed));
-    count = 1;
-    try
-        while true
-%             title( 'Click on the cell you want to analyze. Close when done.' );
-%             set( handles.axes1, 'String', ...
-%                 'Click on the cell you want to analyze. Hit enter when done.' );
-            fun_updateLog( "Click on the cell you want to analyze. Hit enter when done.", handles );
-            [xi(count), yi(count)] = ginput( 1 );
-            hold on; scatter( xi(count), yi(count) );
-            count = count + 1;
-        end
-    catch e
-        xi = fix( xi );
-        yi = fix( yi );
-        ccount = 1;
-        for jj = 1:length(xi)
-            compartment( BWCC == BWCC( yi(jj), xi(jj) ) ) = ccount;
-            ccount = ccount + 1;
-        end
-    end
-    
-    stats = regionprops( compartment, 'all' );
-    
-    data = zeros( size( stats, 1 ), 7 );
-    k = aspectratio * fAspect;
-    k2 = k ^ 2;
-    
-    for ii=1:size( stats, 1 )
-        data( ii, 1 ) = ii;
-        data( ii, 2 ) = stats(ii).MajorAxisLength * k;
-        data( ii, 3 ) = stats(ii).MinorAxisLength * k;
-        data( ii, 4 ) = stats(ii).Area * k2;
-        data( ii, 5 ) = stats(ii).Perimeter * k;
-        data( ii, 6 ) = stats(ii).Orientation;
-        data( ii, 7 ) = timeTaken;
-    end
-else
-    f = errordlg( 'Image load aborted, please tweak parameters.', 'Deepest apologies...' );
-    data = [];
-end
-end
-
-%% segmentationState()
-% The first phase of analysis where you try to get a good segmentation mask
-function segmentationState(handles)
-%% Part 1: Get state variables from handles
-
-
 end
 
 %% preprocessImage( arru8Image )

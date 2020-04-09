@@ -167,15 +167,13 @@ if path ~= 0
         error( 'Error when attempting to display preview of image.' );
     end
         
-        %         set( handles.menuOptions, 'Enable', 'off' );
-    data = fun_analyzeCells( image, ...
-        options.strel_close_size, ...
-        options.contrast_method, ...
-        options.conv, ...
-        handles ); % status handle
-%         handles.axes1, ...
-%         handles.text1 ); % status handle
-        %         set( handles.menuOptions, 'Enable', 'on' );
+    data = fun_analyzeCells( image, handles ); 
+    % Once the first image has been loaded, then let them click on the
+    % button to re-segment
+    set( handles.rerunSegmentation, 'Enable', 'on' );
+        
+        
+        % This code most likely needs to be in another part
         
         if ~isempty( data )
             n = data(size(data,1),1);
@@ -297,8 +295,6 @@ switch get( hObject, 'Value' )
     otherwise
         options.strel_close_size = 2;
 end
-% As a final step, set the custom parameter field below this option
-set( handles.editStrelSize, 'String', num2str(options.strel_close_size) );
 
 % --- Executes during object creation, after setting all properties.
 function popupmagnification_CreateFcn(hObject, eventdata, handles)
@@ -322,24 +318,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 set( hObject, 'String', num2str( options.conv ) );
 
-function editStrelSize_Callback(hObject, eventdata, handles)
-global options
-% When selecting a magnitification, this field will change. However, if the
-% user needs to tweak parameters, they can adjust it here.
-newStrel = get( hObject, 'String' );
-options.strel_close_size = str2double( newStrel );
-
-
-% --- Executes during object creation, after setting all properties.
-function editStrelSize_CreateFcn(hObject, eventdata, handles)
-global options
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-% Set default value
-set( hObject, 'String', num2str(options.strel_close_size) );
 
 
 % --- Executes on selection change in eventLog.
@@ -398,7 +376,7 @@ function strelSize_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
-hObject.Value = 0;
+hObject.Value = 2;
 % Use a separate function to determine what the actual value of this should
 % be.
 value = fun_evalStrelSize( hObject.Value ); 
@@ -407,10 +385,21 @@ value = fun_evalStrelSize( hObject.Value );
 hObject.UserData = value;
 
 
-% --- Executes on selection change in popupmenu5.
+% --- Executes on selection change in popupmenu5. popupmenu5 is the type of
+% morphological operation to use in segmentation.
 function popupmenu5_Callback(hObject, eventdata, handles)
 % Do nothing
 
-% --- Executes during object creation, after setting all properties.
+% --- Executes during object creation, after setting all properties. 
+% popupmenu5 is the type of morphological operation to use in segmentation.
 function popupmenu5_CreateFcn(hObject, eventdata, handles)
 % Do nothing
+hObject.Value = 2; % Default value
+
+
+% --- Executes on button press in rerunSegmentation.
+function rerunSegmentation_Callback(hObject, eventdata, handles)
+% Button the user clicks to re-run segmentation algorithm
+fun_updateLog( "Rerunning segmentation algorithm.", handles );
+imageData = get( handles.axes1, 'UserData' );
+fun_analyzeCells( imageData.originalImage, handles );
