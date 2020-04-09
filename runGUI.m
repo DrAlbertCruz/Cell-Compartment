@@ -88,7 +88,7 @@ set( handles.menuNew, 'UserData', 1 );
 % updated.
 options.NEW_EXP_MSG = 'Data cleared. New experiment started.';
 % Testing log
-fun_updateLog( "Started program. To start a new experiment, click on File and New.", handles.eventLog );
+fun_updateLog( "Started program. To start a new experiment, click on File and New.", handles );
 
 % --- Outputs from this function are returned to the command line.
 function varargout = runGUI_OutputFcn(hObject, eventdata, handles)
@@ -100,6 +100,10 @@ varargout{1} = handles.output;
 function menuHelp_Callback(hObject, eventdata, handles)
 msgbox( [ 'Copying and distribution of this file, with or without modification, are permitted in any medium without royalty provided the copyright notice and this notice are preserved.  This file is offered as-is, without any warranty.' ], ...
     'About Program' );
+
+
+function menuUpperFile_Callback(hObject, eventdata, handles)
+% 4/3/2020 This function does nothing it only exists so that MATLAB does not throw a warning/error
 
 %{
     Callback to create a new function. USERDATA: The number of loaded
@@ -117,14 +121,14 @@ if options.hitNew % dont ask for this the first time they hit it
         case 'Yes'
             set( handles.menuSave, 'UserData', [] );
             set( hObject, 'UserData', 1 );
-            set( handles.text1, 'String', options.NEW_EXP_MSG );
+            fun_updateLog( options.NEW_EXP_MSG, handles );
         case 'No'
-            set( handles.text1, 'String', '"File->New" command aborted.' );
+            fun_updateLog( "File->New command aborted.", handles );
     end
 else
     set( handles.menuSave, 'UserData', [] );
     set( hObject, 'UserData', 1 );
-    set( handles.text1, 'String', options.NEW_EXP_MSG );
+    fun_updateLog( options.NEW_EXP_MSG, handles );
 end
 % Toggle 'hit new'so that they get a prompt whenever they start a new
 % experiment.
@@ -142,26 +146,23 @@ prevPath = get( hObject, 'UserData' );
 
 [file,path] = uigetfile( [ prevPath '*.*' ], 'Load An Image' );
 
+% 'path == 0' must indicate some sort of error when loading the image,
+% probably need to validate this
 if path ~= 0
     try
-        FILE_NAME = fullfile( path, file );
-        image = imread( FILE_NAME );
-        set( handles.text1, 'String', 'Image loaded successfully.' );
+        image = fun_loadImage( path, file, handles );
     catch e
         error( 'Error when loading the image in menuOpen callback.' );
     end
-%         for i=1:size(image,3)
-% %             image = mat2gray( double(image), [0 1] );
-%             image(:,:,i) = imagenorm( image(:,:,i) );
-%         end
     
     % Display the image in the preview pane
     try
         imshow( image, [], 'Parent', handles.axes1 );
+        % handles.menuOpen handle contains the image file
         set( handles.menuOpen, 'UserData', image );
         set( hObject, 'UserData', path );   % save previous path
         % Give instructions
-        set( handles.text1, 'String', 'Click which cells to process. Click outside of the preview window when done.' );
+        fun_updateLog( "Click which cells to process. Press enter when done.", handles );
     catch e
         error( 'Error when attempting to display preview of image.' );
     end
@@ -171,8 +172,9 @@ if path ~= 0
         options.strel_close_size, ...
         options.contrast_method, ...
         options.conv, ...
-        handles.axes1, ...
-        handles.text1 ); % status handle
+        handles ); % status handle
+%         handles.axes1, ...
+%         handles.text1 ); % status handle
         %         set( handles.menuOptions, 'Enable', 'on' );
         
         if ~isempty( data )

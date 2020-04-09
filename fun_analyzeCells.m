@@ -6,8 +6,7 @@ function data = fun_analyzeCells( ...
     iCloseSize, ... This is the structure element for the morphological close operation to touch up the segmentation results.
     iContrastMethod, ... This controls which segmentation algorithm is used
     fAspect, ... This is the conversion to um for real measurements
-    handleAxes, ... This is the handle for the main viewport for the user.
-    handleStatus ) % This is the status
+    handles ) % This is the status
 if nargin == 0
     % Test case for the data
     clc
@@ -172,7 +171,7 @@ timeTaken = toc;
 preview = .6 * repmat( imAdjusted, [ 1 1 3 ] ) + ...
     .4 * double( label2rgb( BWCC, 'jet', [0 0 0], 'shuffle' ) ) ./ 255;
 if ~verbose
-    imshow( preview, [], 'Parent', handleAxes );
+    imshow( preview, [], 'Parent', handles.axes1 );
 else
     imshow( preview, [] );
 end
@@ -187,7 +186,7 @@ if strcmp( ButtonName, 'Yes' )
     try
         while true
 %             title( 'Click on the cell you want to analyze. Close when done.' );
-            set( handleStatus, 'String', ...
+            set( handles.axes1, 'String', ...
                 'Click on the cell you want to analyze. Hit enter when done.' );
             [xi(count), yi(count)] = ginput( 1 );
             hold on; scatter( xi(count), yi(count) );
