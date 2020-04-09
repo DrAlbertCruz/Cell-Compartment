@@ -11,18 +11,21 @@ function data = fun_analyzeCells( ...
 % persistent filter_dX filter_dY strel_close PARAM_FILTER PARAM_IMAGE_SIZE
 
 %% PARAMETER INITIALIZATION: Based on handles
-CONTRAST_METHOD = get(handles.popupcontrast, 'Value') - 1;
-EDGE_METHOD = get(handles.popupedge, 'Value') - 1;
-userData = get( handles.axes1, 'UserData' );
+CONTRAST_METHOD = get( handles.popupcontrast, 'Value' ) - 1;
+EDGE_METHOD = get( handles.popupedge, 'Value' ) - 1;
+CLOSE_SIZE = get( handles.strelSize, 'UserData' );
+STREL_METHOD = get( handles.popupmenu5, 'Value' );
+
+UserData = get( handles.axes1, 'UserData' );
 
 %% PARAMETER INITIALIZATION: Based on this function
-userData.originalImage = arru8Image;
+UserData.originalImage = arru8Image;
 PARAM_IMAGE_SIZE    = 750;
 data                = [];
 
 % Initialize filters. Reflecting on past work here it seems that I
 % generated 2 separated DOG filters.
-strel_close = strel('diamond',iCloseSize);
+
 
 % Why is this 'tic' here?
 tic
@@ -98,9 +101,18 @@ BW = im2bw( edgesMag, graythresh( edgesMag ) );
 %% Part 5: IMAGE CLOSE
 % Image closing operation to touch up the segmentation from the edge
 % detector
+switch STREL_METHOD
+    case 1 % Diamond
+        strel_operator = strel('diamond',CLOSE_SIZE);
+    case 2 % Square
+        strel_operator = strel('square',CLOSE_SIZE);
+    case 3 % Sphere
+        strel_operator = strel('sphere',CLOSE_SIZE);
+end
 BWClosed = imclose( BW, ...
-    strel_close );
+    strel_operator );
 
+imshow( BWClosed, [] );
 
 %% Part 6: IDENTIFY OBJECTS
 % Identify possible cells by inverting the masked image from the previous

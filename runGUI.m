@@ -377,3 +377,40 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 set( hObject, 'Value', 1 ); % Set default value to first
+
+
+% --- Executes on slider movement. Must update the user text to let them
+% know what value this corresponds to.
+function strelSize_Callback(hObject, eventdata, handles)
+% Use a separate function to determine what the actual value of this should
+% be.
+value = fun_evalStrelSize( hObject.Value ); 
+% Make sure that when the user clicks on this slider UserData is set with
+% the value that should be used.
+hObject.UserData = value;
+% Finally, update the string telling the user the overall size
+set( handles.textStrelSize, ...
+    'String', ...
+    strcat( "Morph. operator strength: ", num2str(value) ) );
+
+% --- Executes during object creation, after setting all properties.
+function strelSize_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+hObject.Value = 0;
+% Use a separate function to determine what the actual value of this should
+% be.
+value = fun_evalStrelSize( hObject.Value ); 
+% Make sure that when the user clicks on this slider UserData is set with
+% the value that should be used.
+hObject.UserData = value;
+
+
+% --- Executes on selection change in popupmenu5.
+function popupmenu5_Callback(hObject, eventdata, handles)
+% Do nothing
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu5_CreateFcn(hObject, eventdata, handles)
+% Do nothing
