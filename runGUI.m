@@ -363,3 +363,17 @@ function eventLog_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on selection change in popupedge.
+function popupedge_Callback(hObject, eventdata, handles)
+global options
+options.edge_method = get( hObject, 'Value' ) - 1;
+
+% --- Executes during object creation, after setting all properties.
+function popupedge_CreateFcn(hObject, eventdata, handles)
+global options
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+set( hObject, 'Value', 1 ); % Set default value to first

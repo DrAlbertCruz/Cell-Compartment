@@ -13,10 +13,8 @@ function data = fun_analyzeCells( ...
 %% PARAMETER INITIALIZATION: Based on handles
 CONTRAST_METHOD = get(handles.popupcontrast, 'Value') - 1;
 EDGE_METHOD = get(handles.popupedge, 'Value') - 1;
-userData = get( handles.axes1, 'UserData' );
 
-%% PARAMETER INITIALIZATION: Based on this function
-userData.originalImage = arru8Image;
+% Parameters set in this function
 PARAM_IMAGE_SIZE    = 750;
 data                = [];
 
@@ -95,18 +93,17 @@ edgesMag = mat2gray( edgesMag );
 BW = im2bw( edgesMag, graythresh( edgesMag ) );
 
 
-%% Part 5: IMAGE CLOSE
-% Image closing operation to touch up the segmentation from the edge
-% detector
+% Close it
 BWClosed = imclose( BW, ...
     strel_close );
 
 
-%% Part 6: IDENTIFY OBJECTS
-% Identify possible cells by inverting the masked image from the previous
-% step, and then conjuncting it with the ROI mask calculated at the
-% beginnning of segmentation
+%{
+    Part 2.b, we want to get a mask for the object they clicked on.
+%}
+% Invert the image
 BWClosed = ~( BWClosed );
+
 % Now CC
 BWCC = bwlabel( BWClosed );
 BWCC( ~ROI ) = 0;
