@@ -1,40 +1,12 @@
-%% Notes
-% Theres alot of functions here that are probably associated with a
-% callback to a button that no longer exists but I'm afraid to start
-% deleting things wily nily because it works at the moment.
-
-function varargout = runGUI(varargin)
-% RUNGUI MATLAB code for runGUI.fig
-%      RUNGUI, by itself, creates a new RUNGUI or raises the existing
-%      singleton*.
-%
-%      H = RUNGUI returns the handle to a new RUNGUI or the handle to
-%      the existing singleton*.
-%
-%      RUNGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in RUNGUI.M with the given input arguments.
-%
-%      RUNGUI('Property','Value',...) creates a new RUNGUI or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before runGUI_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to runGUI_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
-
-% Edit the above text to modify the response to help runGUI
-
 % Begin initialization code - DO NOT EDIT
+function varargout = runGUI(varargin)
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-    'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @runGUI_OpeningFcn, ...
-    'gui_OutputFcn',  @runGUI_OutputFcn, ...
-    'gui_LayoutFcn',  [] , ...
-    'gui_Callback',   []);
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @runGUI_OpeningFcn, ...
+                   'gui_OutputFcn',  @runGUI_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -45,7 +17,6 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
 
 % --- Executes just before runGUI is made visible.
 function runGUI_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -89,6 +60,8 @@ set( handles.menuNew, 'UserData', 1 );
 options.NEW_EXP_MSG = 'Data cleared. New experiment started.';
 % Testing log
 fun_updateLog( "Started program. To start a new experiment, click on File and New.", handles );
+% Wipe the viewport so that the screen is empty
+fun_wipeViewport( handles )
 
 % --- Outputs from this function are returned to the command line.
 function varargout = runGUI_OutputFcn(hObject, eventdata, handles)
@@ -133,6 +106,8 @@ end
 % Toggle 'hit new'so that they get a prompt whenever they start a new
 % experiment.
 options.hitNew = true;
+% Wipe the viewport
+fun_wipeViewport( handles )
 
 %{
     Callback for when the attempt to load a new image. Note that this is
@@ -280,31 +255,6 @@ end
 set( hObject, 'Value', options.contrast_method + 1 );
 
 %{
-    Contrast adjustment pulldown menu.
-%}
-
-function popupmagnification_Callback(hObject, eventdata, handles)
-global options
-switch get( hObject, 'Value' )
-    case 1 % x20
-        options.strel_close_size = 2;
-    case 2 % x40
-        options.strel_close_size = 3;
-    case 3 % x60
-        options.strel_close_size = 4;
-    otherwise
-        options.strel_close_size = 2;
-end
-
-% --- Executes during object creation, after setting all properties.
-function popupmagnification_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-set( hObject, 'Value', 1 ); % default, corresponds to x20
-
-
-%{
     um/pixel conversion. USERDATA for edit1: um/pixel conversion (double)
 %}
 function edit1_Callback(hObject, eventdata, handles)
@@ -403,3 +353,11 @@ function rerunSegmentation_Callback(hObject, eventdata, handles)
 fun_updateLog( "Rerunning segmentation algorithm.", handles );
 imageData = get( handles.axes1, 'UserData' );
 fun_analyzeCells( imageData.originalImage, handles );
+
+
+% --- Executes on button press in selectCells.
+function selectCells_Callback(hObject, eventdata, handles)
+% hObject    handle to selectCells (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+fun_selectCells( handles );

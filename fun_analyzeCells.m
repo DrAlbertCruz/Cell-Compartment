@@ -33,16 +33,16 @@ tic
 
 arru8Image = preprocessImage( arru8Image );
 
-%{
-    Part 1: Resize to 750, maintaining aspect ratio
-%}
-if size( arru8Image, 2 ) > size( arru8Image, 1 )
-    aspectratio = size( arru8Image, 2 ) / 750;
-    arru8Image = imresize( arru8Image, [NaN PARAM_IMAGE_SIZE] );
-else
-    aspectratio = size( arru8Image, 1 ) / 750;
-    arru8Image = imresize( arru8Image, [PARAM_IMAGE_SIZE NaN] );
-end
+% %{
+%     Part 1: Resize to 750, maintaining aspect ratio
+% %}
+% if size( arru8Image, 2 ) > size( arru8Image, 1 )
+%     aspectratio = size( arru8Image, 2 ) / 750;
+%     arru8Image = imresize( arru8Image, [NaN PARAM_IMAGE_SIZE] );
+% else
+%     aspectratio = size( arru8Image, 1 ) / 750;
+%     arru8Image = imresize( arru8Image, [PARAM_IMAGE_SIZE NaN] );
+% end
 
 %{
     Part 2: Get ROI first before we do anything
@@ -113,8 +113,6 @@ end
 BWClosed = imclose( BW, ...
     strel_operator );
 
-imshow( BWClosed, [] );
-
 %% Part 6: IDENTIFY OBJECTS
 % Identify possible cells by inverting the masked image from the previous
 % step, and then conjuncting it with the ROI mask calculated at the
@@ -123,6 +121,8 @@ BWClosed = ~( BWClosed );
 % Now CC
 BWCC = bwlabel( BWClosed );
 BWCC( ~ROI ) = 0;
+UserData.BWCC = BWCC;
+UserData.BWClosed = BWClosed;
 
 
 %% PART 7: PSEUDOCOLOR IMAGE
@@ -138,57 +138,13 @@ UserData.colorizedPreview = colorizedPreview;
 set( handles.axes1, 'UserData', UserData );
 % Enable the segmentation button now that were complete
 set( handles.rerunSegmentation, 'Enable', 'on' );
+% Completion of the segmentation phase should enable the option to click on
+% the cells
+set( handles.selectCells, 'Enable', 'on' );
 % Note in the log that we started.
 toc;
 fun_updateLog( strcat( "Segmentation algorithm completed in ", num2str( toc ), " seconds." ),...
     handles );
-
-% ButtonName = questdlg('Was the segmentation OK?', ...
-%     'Was the segmentation OK?', ...
-%     'Yes', 'No', 'No' );
-% 
-% if strcmp( ButtonName, 'Yes' )
-%     compartment = zeros(size(BWClosed));
-%     count = 1;
-%     try
-%         while true
-% %             title( 'Click on the cell you want to analyze. Close when done.' );
-% %             set( handles.axes1, 'String', ...
-% %                 'Click on the cell you want to analyze. Hit enter when done.' );
-%             fun_updateLog( "Click on the cell you want to analyze. Hit enter when done.", handles );
-%             [xi(count), yi(count)] = ginput( 1 );
-%             hold on; scatter( xi(count), yi(count) );
-%             count = count + 1;
-%         end
-%     catch e
-%         xi = fix( xi );
-%         yi = fix( yi );
-%         ccount = 1;
-%         for jj = 1:length(xi)
-%             compartment( BWCC == BWCC( yi(jj), xi(jj) ) ) = ccount;
-%             ccount = ccount + 1;
-%         end
-%     end
-%     
-%     stats = regionprops( compartment, 'all' );
-%     
-%     data = zeros( size( stats, 1 ), 7 );
-%     k = aspectratio * fAspect;
-%     k2 = k ^ 2;
-%     
-%     for ii=1:size( stats, 1 )
-%         data( ii, 1 ) = ii;
-%         data( ii, 2 ) = stats(ii).MajorAxisLength * k;
-%         data( ii, 3 ) = stats(ii).MinorAxisLength * k;
-%         data( ii, 4 ) = stats(ii).Area * k2;
-%         data( ii, 5 ) = stats(ii).Perimeter * k;
-%         data( ii, 6 ) = stats(ii).Orientation;
-%         data( ii, 7 ) = timeTaken;
-%     end
-% else
-%     f = errordlg( 'Image load aborted, please tweak parameters.', 'Deepest apologies...' );
-%     data = [];
-% end
 end
 
 %% preprocessImage( arru8Image )
