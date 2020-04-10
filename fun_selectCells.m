@@ -1,7 +1,7 @@
 %% fun_analyzeCells
 % As of v101, this function should only be called to segment the image and
 % display a psuedo-color on the main viewport
-function data = fun_selectCells( handles )
+function fun_selectCells( handles )
 % Lock the segmentation button permanently because this is considered
 % moving into phase 2.
 set( handles.rerunSegmentation, 'Enable', 'off' );
@@ -9,6 +9,9 @@ set( handles.rerunSegmentation, 'Enable', 'off' );
 fun_updateLog( "Beginning phase where user clicks on cells. Click on a cell to analyze.", handles );
 % Get user data
 UserData = get( handles.axes1, 'UserData' );
+% Get aspect ratio from handles. Note that when I originally created this
+% code I forgot to name the tag for the conversion box.
+fAspect = get( handles.edit1, 'Value' );
 
 % What is compartment? Compartment is an image that contains the image of
 % cells to be analyzed by the connected components algorithm.
@@ -26,7 +29,7 @@ try
         [xi(count), yi(count)] = ginput( 1 );
         hold on; scatter( xi(count), yi(count) );
         fun_updateLog( ...
-                        strcat( "User clicked on: (",  nums2str(xi(count)), ", ", nums2str(yi(count)), ")" ...
+                        strcat( "User clicked on: (",  num2str(xi(count)), ", ", num2str(yi(count)), ")" ...m
                       ), ...
             handles );
         count = count + 1;
@@ -52,17 +55,18 @@ realCount = unique( compartment ) - 1;
 stats = regionprops( compartment, 'all' );
 
 data = zeros( size( stats, 1 ), 7 );
-k = aspectratio * fAspect;
+k = fAspect;
 k2 = k ^ 2;
 
 for ii=1:size( stats, 1 )
-    data( ii, 1 ) = ii;
+    data( ii, 1 ) = get_inFilename( handles );          % Name of the file that this is from
+    data( ii, 1 ) = ii;                                 % ID number of the cell
     data( ii, 2 ) = stats(ii).MajorAxisLength * k;
     data( ii, 3 ) = stats(ii).MinorAxisLength * k;
     data( ii, 4 ) = stats(ii).Area * k2;
     data( ii, 5 ) = stats(ii).Perimeter * k;
     data( ii, 6 ) = stats(ii).Orientation;
-    data( ii, 7 ) = timeTaken;
+    data( ii, 7 ) = UserData.toc;
 end
 
 end

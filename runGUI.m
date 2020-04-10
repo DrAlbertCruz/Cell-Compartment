@@ -124,6 +124,9 @@ prevPath = get( hObject, 'UserData' );
 % 'path == 0' must indicate some sort of error when loading the image,
 % probably need to validate this
 if path ~= 0
+    % Set official file name within the program
+    set_inFilename( file, handles );
+    
     try
         image = fun_loadImage( path, file, handles );
     catch e

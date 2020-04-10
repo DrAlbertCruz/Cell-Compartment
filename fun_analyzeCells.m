@@ -134,17 +134,18 @@ imshow( colorizedPreview, [], 'Parent', handles.axes1 );
 % Save onto UserData for some persistence
 UserData.colorizedPreview = colorizedPreview;
 
-% Set the data for the image in axes1 user data for some persistence
-set( handles.axes1, 'UserData', UserData );
+
 % Enable the segmentation button now that were complete
 set( handles.rerunSegmentation, 'Enable', 'on' );
 % Completion of the segmentation phase should enable the option to click on
 % the cells
 set( handles.selectCells, 'Enable', 'on' );
 % Note in the log that we started.
-toc;
-fun_updateLog( strcat( "Segmentation algorithm completed in ", num2str( toc ), " seconds." ),...
+UserData.toc = toc;
+fun_updateLog( strcat( "Segmentation algorithm completed in ", num2str( UserData.toc ), " seconds." ),...
     handles );
+% Set the data for the image in axes1 user data for some persistence
+set( handles.axes1, 'UserData', UserData );
 end
 
 %% preprocessImage( arru8Image )
