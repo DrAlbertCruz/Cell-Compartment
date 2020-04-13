@@ -53,11 +53,17 @@ options.hitNew = false;
 options.conv = .3225;
 % Also obligatory initial settings
 set( handles.menuSave, 'UserData', [] );
-set( handles.menuNew, 'UserData', 1 );
+%% newMenu Data
+% newMenu data should contain all members that are a part of the experiment
+% itself, such as whether or not the user has hit a specific button
+
+% When the user first launches the program, they have no yet hit 'new'
+% button so set this to false.
+newData.hitNew = false;
+newData.savePath = [];
+newData.saveFileName = [];
+set( handles.menuNew, 'UserData', newData );
 %% STRINGS
-% That are used in many places, and located here so they can be easily
-% updated.
-options.NEW_EXP_MSG = 'Data cleared. New experiment started.';
 % Testing log
 fun_updateLog( "Started program. To start a new experiment, click on File and New.", handles );
 % Wipe the viewport so that the screen is empty
@@ -83,31 +89,7 @@ function menuUpperFile_Callback(hObject, eventdata, handles)
     images.
 %}
 function menuNew_Callback(hObject, eventdata, handles)
-global options
-
-if options.hitNew % dont ask for this the first time they hit it
-    ButtonName = questdlg('Starting a new experiment will clear all previous data/images. Clear all data?', ...
-        'Clear all data?', ...
-        'Yes', 'No', 'No' );
-    
-    switch ButtonName
-        case 'Yes'
-            set( handles.menuSave, 'UserData', [] );
-            set( hObject, 'UserData', 1 );
-            fun_updateLog( options.NEW_EXP_MSG, handles );
-        case 'No'
-            fun_updateLog( "File->New command aborted.", handles );
-    end
-else
-    set( handles.menuSave, 'UserData', [] );
-    set( hObject, 'UserData', 1 );
-    fun_updateLog( options.NEW_EXP_MSG, handles );
-end
-% Toggle 'hit new'so that they get a prompt whenever they start a new
-% experiment.
-options.hitNew = true;
-% Wipe the viewport
-fun_wipeViewport( handles )
+fun_newImage( handles );
 
 %{
     Callback for when the attempt to load a new image. Note that this is
@@ -247,29 +229,29 @@ set( hObject, 'UserData', options );
 %}
 
 function popupcontrast_Callback(hObject, eventdata, handles)
-global options
-options.contrast_method = get( hObject, 'Value' ) - 1;
+% global options
+% options.contrast_method = get( hObject, 'Value' ) - 1;
 
 function popupcontrast_CreateFcn(hObject, eventdata, handles)
-global options
+% global options
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-set( hObject, 'Value', options.contrast_method + 1 );
+% set( hObject, 'Value', options.contrast_method + 1 );
 
 %{
     um/pixel conversion. USERDATA for edit1: um/pixel conversion (double)
 %}
 function edit1_Callback(hObject, eventdata, handles)
-global options
-options.conv = str2double( get( hObject, 'String' ) );
+% global options
+% options.conv = str2double( get( hObject, 'String' ) );
 
 function edit1_CreateFcn(hObject, eventdata, handles)
-global options
+% global options
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-set( hObject, 'String', num2str( options.conv ) );
+% set( hObject, 'String', num2str( options.conv ) );
 
 
 
@@ -364,3 +346,24 @@ function selectCells_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 fun_selectCells( handles );
+
+
+% --- Executes on selection change in popupmenuFileType.
+function popupmenuFileType_Callback(hObject, eventdata, handles)
+% Do nothing
+
+% --- Executes during object creation, after setting all properties.
+function popupmenuFileType_CreateFcn(hObject, eventdata, handles)
+% Do nothing
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbuttonSave.
+function pushbuttonSave_Callback(hObject, eventdata, handles)
+fun_saveCells( handles );
+
+% --- Executes during object creation, after setting all properties.
+function pushbuttonSave_CreateFcn(hObject, eventdata, handles)
+hObject.UserData = 0; % Initial value of 0 indicates that a path is not yet set.

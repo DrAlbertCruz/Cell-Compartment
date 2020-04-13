@@ -13,6 +13,9 @@ UserData = get( handles.axes1, 'UserData' );
 % code I forgot to name the tag for the conversion box.
 fAspect = get( handles.edit1, 'Value' );
 
+%% Refresh viewing window
+imshow( UserData.colorizedPreview, [], 'Parent', handles.axes1 );
+
 % What is compartment? Compartment is an image that contains the image of
 % cells to be analyzed by the connected components algorithm.
 
@@ -45,28 +48,28 @@ catch e
     end
 end
 
-% Create a pseudo-color image of the cells to be analyzed
-newView = repmat( mat2gray(UserData.originalImage), [1 1 3] );
-newView(:,:,1) = newView(:,:,1) .* .5 + double(compartment > 0) .* 0.5;
+% % Create a pseudo-color image of the cells to be analyzed
+% newView = repmat( mat2gray(UserData.originalImage), [1 1 3] );
+% newView(:,:,1) = newView(:,:,1) .* .5 + double(compartment > 0) .* 0.5;
 
 % A real count of the cells
-realCount = unique( compartment ) - 1;
+% realCount = unique( compartment ) - 1;
 
 stats = regionprops( compartment, 'all' );
 
-data = zeros( size( stats, 1 ), 7 );
-k = fAspect;
-k2 = k ^ 2;
+% data = zeros( size( stats, 1 ), 7 );
+% k = fAspect;
+% k2 = k ^ 2;
 
-for ii=1:size( stats, 1 )
-    data( ii, 1 ) = get_inFilename( handles );          % Name of the file that this is from
-    data( ii, 1 ) = ii;                                 % ID number of the cell
-    data( ii, 2 ) = stats(ii).MajorAxisLength * k;
-    data( ii, 3 ) = stats(ii).MinorAxisLength * k;
-    data( ii, 4 ) = stats(ii).Area * k2;
-    data( ii, 5 ) = stats(ii).Perimeter * k;
-    data( ii, 6 ) = stats(ii).Orientation;
-    data( ii, 7 ) = UserData.toc;
-end
+% for ii=1:size( stats, 1 )
+data.stats = stats;
+data.k = fAspect;
+data.toc = UserData.toc;
+% end
 
+% Last step, save the data into whatever GUI button is holding the user
+% Data, and enable the button to save
+set_data( handles, data );
+
+set( handles.pushbuttonSave, 'Enable', 'on' );
 end
