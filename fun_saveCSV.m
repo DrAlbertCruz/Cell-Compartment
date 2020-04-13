@@ -11,16 +11,17 @@ fprintf( fid, ...
 
 % K seems to be unset, use get_k()
 k = get_k( handles );
+k2 = k * k;
  
 %% Part 2: Iterate line by line
 for i = 1:length(data.stats)
     str = strcat( get_inFilename( handles ), ',', ... Input file name
         num2str( i ), ',', ... The ID of the cell were analyzing
-        num2str( data.stats(i).Area ), ',', ... Area
-        num2str( data.stats(i).FilledArea ), ',', ... FilledArea
-        num2str( data.stats(i).Perimeter ), ',', ... Perimeter
-        num2str( data.stats(i).MajorAxisLength ), ',', ... MajorAxisLength
-        num2str( data.stats(i).MinorAxisLength ), ',', ... MinorAxisLength
+        num2str( data.stats(i).Area * k2 ), ',', ... Area
+        num2str( data.stats(i).FilledArea * k2 ), ',', ... FilledArea
+        num2str( data.stats(i).Perimeter * k ), ',', ... Perimeter
+        num2str( data.stats(i).MajorAxisLength * k ), ',', ... MajorAxisLength
+        num2str( data.stats(i).MinorAxisLength * k ), ',', ... MinorAxisLength
         num2str( data.stats(i).Orientation ), ',', ... Orientation
         num2str( data.stats(i).Eccentricity ), ... Eccentricity
         "\r\n" );
