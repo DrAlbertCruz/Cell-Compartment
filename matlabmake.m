@@ -1,0 +1,1 @@
+mcc -m runGUI.m -d bin -v
