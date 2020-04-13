@@ -1,4 +1,4 @@
-function str = get_outFilenamePath( handles )
+function str = get_inFilenamePath( handles )
 % savePath is a property of menuNew
 UserData = get( handles.eventLog, 'UserData' );
-str = UserData.outFilenamePath;
+str = UserData.inFilenamePath;

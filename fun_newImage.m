@@ -9,7 +9,9 @@ ButtonName = questdlg('Starting a new experiment will clear all previous data/im
 switch ButtonName
     case 'Yes'
         % Change the file name to nothing, but save all previous paths
+        set_inFilename( [], handles );
         set_outFilename( [], handles );
+        % Message to eventLog
         fun_updateLog( 'Data cleared. New experiment started.', handles );
         
         % Wipe the viewport

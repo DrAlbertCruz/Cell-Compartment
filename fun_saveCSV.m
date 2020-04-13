@@ -9,6 +9,9 @@ fid = fopen( fullfile( get_outFilenamePath( handles ), get_outFilename( handles 
 fprintf( fid, ...
      "Filename, ID, Area, Filled Area, Perimeter, Major Axis Length, Minor Axis Length, Orientation, Eccentricity\r\n" );
 
+% K seems to be unset, use get_k()
+k = get_k( handles );
+ 
 %% Part 2: Iterate line by line
 for i = 1:length(data.stats)
     str = strcat( get_inFilename( handles ), ',', ... Input file name

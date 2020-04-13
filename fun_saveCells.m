@@ -40,3 +40,7 @@ switch fileType
     case 1
         fun_saveCSV( data, handles );
 end
+
+% Notify user of save
+fun_updateLog( strcat( "Saved cell results to ", fullfile( path, file ), "." ), ...
+    handles );

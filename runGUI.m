@@ -2,11 +2,11 @@
 function varargout = runGUI(varargin)
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @runGUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @runGUI_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @runGUI_OpeningFcn, ...
+    'gui_OutputFcn',  @runGUI_OutputFcn, ...
+    'gui_LayoutFcn',  [] , ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
@@ -20,50 +20,18 @@ end
 
 % --- Executes just before runGUI is made visible.
 function runGUI_OpeningFcn(hObject, eventdata, handles, varargin)
-global options
-
+% No idea what this thing does
 handles.output = hObject;
-
 % Update handles structure
 guidata(hObject, handles);
-
 % UIWAIT makes runGUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-%% DEFAULT VALUE SETTINGS
-% STREL CLOSE SIZE
-% This parameter is used to close holds that may have occured during
-% segmentation.
-%   20x - 2 (default)
-%   40x - 3
-%   60x - 4
-options.strel_close_size = 2;
-% CONTRAST METHOD
-%   Contrast method:
-%   0 - none
-%   1 - Auto Contrast
-%   2 - adaptive histogram equalization (default)
-options.contrast_method = 2;
-% HIT NEW
-%   The first time the user hits 'new experiment' it should not pester them
-%   with a prompt. This flag makes sure of that.
-options.hitNew = false;
-% UM/PIX Formula
-%   Conversion to um from pixels
-options.conv = .3225;
-% Also obligatory initial settings
-set( handles.menuSave, 'UserData', [] );
-%% newMenu Data
-% newMenu data should contain all members that are a part of the experiment
-% itself, such as whether or not the user has hit a specific button
-
-% When the user first launches the program, they have no yet hit 'new'
-% button so set this to false.
-newData.hitNew = false;
-newData.savePath = [];
-newData.saveFileName = [];
-set( handles.menuNew, 'UserData', newData );
-%% STRINGS
+% Initialize state variables located in UserData of GUI components
+set_inFilenamePath( [], handles );
+set_inFilename( [], handles );
+set_outFilename( [], handles );
+set_outFilenamePath( [], handles );
 % Testing log
 fun_updateLog( "Started program. To start a new experiment, click on File and New.", handles );
 % Wipe the viewport so that the screen is empty
@@ -73,9 +41,7 @@ fun_wipeViewport( handles )
 function varargout = runGUI_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
-%{
-    Product help
-%}
+% --- Product help
 function menuHelp_Callback(hObject, eventdata, handles)
 msgbox( [ 'Copying and distribution of this file, with or without modification, are permitted in any medium without royalty provided the copyright notice and this notice are preserved.  This file is offered as-is, without any warranty.' ], ...
     'About Program' );
@@ -84,150 +50,51 @@ msgbox( [ 'Copying and distribution of this file, with or without modification, 
 function menuUpperFile_Callback(hObject, eventdata, handles)
 % 4/3/2020 This function does nothing it only exists so that MATLAB does not throw a warning/error
 
-%{
-    Callback to create a new function. USERDATA: The number of loaded
-    images.
-%}
+% --- User hits 'File->New'
 function menuNew_Callback(hObject, eventdata, handles)
 fun_newImage( handles );
 
-%{
-    Callback for when the attempt to load a new image. Note that this is
-    where we store the current image.
-%}
+% --- User hits 'File->Open'
 function menuOpen_Callback(hObject, eventdata, handles)
-% User data will have the previous path
-global options
-% This callback's 'UserData' contains the previous path.
-prevPath = get( hObject, 'UserData' );
-
-[file,path] = uigetfile( [ prevPath '*.*' ], 'Load An Image' );
+% Prompt
+[file,path] = uigetfile( fun_filterSpec, 'Load An Image' );
 
 % 'path == 0' must indicate some sort of error when loading the image,
 % probably need to validate this
 if path ~= 0
     % Set official file name within the program
     set_inFilename( file, handles );
+    set_inFilenamePath( path, handles );
     
     try
         image = fun_loadImage( path, file, handles );
     catch e
-        error( 'Error when loading the image in menuOpen callback.' );
+        error( 'Error when loading the image in menuOpen_Callback().' );
     end
     
-    % Display the image in the preview pane
+    
     try
-        imshow( image, [], 'Parent', handles.axes1 );
-        % handles.menuOpen handle contains the image file
-        set( handles.menuOpen, 'UserData', image );
-        set( hObject, 'UserData', path );   % save previous path
-        % Give instructions. Commented out on 4/9 because it was redundant
-%         fun_updateLog( "Click which cells to process. Press enter when done.", handles );
+        % Display the image in the preview pane
+        fun_displayImage( image, handles )
     catch e
         error( 'Error when attempting to display preview of image.' );
     end
-        
-    data = fun_analyzeCells( image, handles ); 
+    
+    data = fun_analyzeCells( image, handles );
     % Once the first image has been loaded, then let them click on the
     % button to re-segment
     set( handles.rerunSegmentation, 'Enable', 'on' );
-        
-        
-        % This code most likely needs to be in another part
-        
-        if ~isempty( data )
-            n = data(size(data,1),1);
-            dataOld = get( handles.menuSave, 'UserData' );
-            data = [ [ ones(size(data,1),1) * get(handles.menuNew,'UserData') data]; ...
-                dataOld ];
-            
-            set( handles.menuSave, 'UserData', data );
-            set( handles.menuNew, 'UserData', get(handles.menuNew,'UserData') + 1 );
-%             set( handles.text1, 'String', [ 'Complete with image ' num2str(get(handles.menuNew,'UserData')-1) ...
-%                 ' (' num2str(n) ' cells). Waiting ...' ] );
-            fun_updateLog( [ 'Complete with image ' num2str(get(handles.menuNew,'UserData')-1) ...
-                ' (' num2str(n) ' cells). Waiting ...' ], handles );
-        end
-   % catch e
-   %     error( 'Error (in runGUI) : Bad, bad very bad error when processing a cell. Call Albert.' );
-   % end
 end
 
-%{
-    Callback to export data to XLS file. USERDATA: The matrix of data
-%}
-function menuSave_Callback(hObject, eventdata, handles)
-path = get( handles.menuSaveCSV, 'UserData' );
-data = get( hObject, 'UserData' );
-
-[file,path] = uiputfile( fullfile( path, 'myExp.xls' ),'Save Experiment As');
-if path ~= 0 & ~ isempty( data )
-    xlswrite( fullfile( path, file ), data );
-else
-%     set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
-    fun_updateLog( "Save aborted (Possibly empty data, or bad path).", handles );
-end
-
-%{
-    Saves as a csv, contains path for saves
-%}
-function menuSaveCSV_Callback(hObject, eventdata, handles)
-path = get( hObject, 'UserData' );
-data = get( handles.menuSave, 'UserData' );
-
-[file,path] = uiputfile( fullfile( path, 'myExp.csv' ),'Save Experiment As');
-if path ~= 0 & ~ isempty( data )
-    csvwrite( fullfile( path, file ), data );
-else
-%     set( handles.text1, 'String', 'Save aborted (Possibly empty data, or bad path).' );
-    fun_updateLog( "Save aborted (Possibly empty data, or bad path).", handles );
-end
-
-
-%{
-    Close function
-%}
+% --- 'File->Quit'
 function menuQuit_Callback(hObject, eventdata, handles)
 close all
 
-
-%{
-    The GO button
-%}
-% function pushbutton1_Callback(hObject, eventdata, handles)
-% image = get( handles.menuOpen, 'UserData' );
-
-
 % --------------------------------------------------------------------
 function menuUpperEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to menuUpperEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-%{
-    Callback for menu options. Note that this is where we set our option
-    preferences.
-%}
-function menuOptions_Callback(hObject, eventdata, handles)
-options = get( hObject, 'UserData' );
-
-prompt={'Enter the size for morphological close (Default 7. Decrease this to 3 for really small cells. Must be odd. Minimum is 3, dont go above 13 or so):'};
-name='Options for Analysis';
-numlines=1;
-defaultanswer={num2str(options.strel_close_size)};
-
-answer=inputdlg(prompt,name,numlines,defaultanswer);
-
-options.strel_close_size = str2double( cell2mat( answer(1) ) );
-
-set( hObject, 'UserData', options );
+% Does nothing, MATLAB throws a fit if this does not exist
 
 %% Parameter Callbacks
-%{
-    Contrast adjustment pulldown menu.
-%}
-
 function popupcontrast_Callback(hObject, eventdata, handles)
 % global options
 % options.contrast_method = get( hObject, 'Value' ) - 1;
@@ -297,7 +164,7 @@ set( hObject, 'Value', 1 ); % Set default value to first
 function strelSize_Callback(hObject, eventdata, handles)
 % Use a separate function to determine what the actual value of this should
 % be.
-value = fun_evalStrelSize( hObject.Value ); 
+value = fun_evalStrelSize( hObject.Value );
 % Make sure that when the user clicks on this slider UserData is set with
 % the value that should be used.
 hObject.UserData = value;
@@ -314,7 +181,7 @@ end
 hObject.Value = 2;
 % Use a separate function to determine what the actual value of this should
 % be.
-value = fun_evalStrelSize( hObject.Value ); 
+value = fun_evalStrelSize( hObject.Value );
 % Make sure that when the user clicks on this slider UserData is set with
 % the value that should be used.
 hObject.UserData = value;
@@ -325,7 +192,7 @@ hObject.UserData = value;
 function popupmenu5_Callback(hObject, eventdata, handles)
 % Do nothing
 
-% --- Executes during object creation, after setting all properties. 
+% --- Executes during object creation, after setting all properties.
 % popupmenu5 is the type of morphological operation to use in segmentation.
 function popupmenu5_CreateFcn(hObject, eventdata, handles)
 % Do nothing
