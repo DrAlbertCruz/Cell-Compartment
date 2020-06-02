@@ -5,3 +5,5 @@ test*.m
 *.csv
 *.xlsx
 *.xls
+samples/wta2-2020/
+samples/old/

@@ -31,7 +31,10 @@ data                = [];
 % Why is this 'tic' here?
 tic
 
-arru8Image = preprocessImage( arru8Image );
+arru8Image = preprocessImage( arru8Image, handles );
+
+% % Debugging only
+% arru8Image = arru8Image .^ (2.2);
 
 % %{
 %     Part 1: Resize to 750, maintaining aspect ratio
@@ -96,6 +99,10 @@ edgesMag = sqrt( edgesX.^2 + edgesY.^2 );
 edgesMag = mat2gray( edgesMag );
 % Following line removed 4/9
 % edgesMag = imadjust( edgesMag );
+
+% % Debugging only
+% imshow( edgesMag, [] );
+
 BW = im2bw( edgesMag, graythresh( edgesMag ) );
 
 
@@ -151,7 +158,7 @@ end
 %% preprocessImage( arru8Image )
 % Function responsible for preprocessing the image, converting it to
 % grayscale and other things
-function result = preprocessImage( arru8Image )
+function result = preprocessImage( arru8Image, handles )
 %% Part 1: Check if image is RGB
 % If the image is RGB then convert it to grayscale
 if size( arru8Image, 3 ) > 1 % Check for for color.
@@ -165,6 +172,8 @@ arru8Image = mat2gray( arru8Image );
 %% Part 3: A very slight blur
 filter = [1 2 1; 2 4 2; 1 2 1] ./ 16;
 result = conv2( arru8Image, filter, 'same');
+%% Part 4: Gamma correction
+result = result .^ get( handles.slider2, 'Value' );
 end
 
 % function verboseNewFigure( initialize )

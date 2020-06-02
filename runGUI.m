@@ -234,3 +234,26 @@ fun_saveCells( handles );
 % --- Executes during object creation, after setting all properties.
 function pushbuttonSave_CreateFcn(hObject, eventdata, handles)
 hObject.UserData = 0; % Initial value of 0 indicates that a path is not yet set.
+
+
+% --- Executes on slider movement. Forgot to name this before GUIDE saved
+% it. 'slider2' is responsible for controlling gamma.
+function slider2_Callback(hObject, eventdata, handles)
+% Whenever the slider is 'touched', set it's value to round up to the
+% nearest tenths place
+hObject.Value = round( hObject.Value, 1 );
+% Set the text to an appropriate value
+set( handles.textGamma, 'String', ...
+    strcat( "Gamma correction: ", ...
+        num2str( hObject.Value, 2 ) ) ...
+    );
+
+
+% --- Executes during object creation, after setting all properties.
+function slider2_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+% Do nothing except for set default value
+hObject.Value = 2.2;
+% set( handles.textGamma, 'String', "Gamma correction: 2.2" );
